@@ -8,18 +8,11 @@ of the pupils and teachers alike" - Roald Dahl
 
 Keyboard shortcuts: (video display window must be selected)
 
-    ESC   - exit
-    SPACE - switch between multi and single threaded processing
+    r     - to begin the roll call
+    f     - to finish the roll call (CSV file should automatically open)
     v     - write video output frames to file "vid_out.avi"
-
-Option 1 (no timer)
-    i     - load images
-    r     - start the roll call (no timer)
-
-Option 2 (with timer)
-    i     - load images
-    t     - start the roll call (with timer)
-
+    SPACE - switch between multi and single threaded processing
+    ESC   - exit
 
 https://github.com/qe/trunchbull
 """
@@ -28,7 +21,6 @@ https://github.com/qe/trunchbull
 # import libraries
 import cv2 as cv
 import numpy as np
-# import math
 import video
 from common import draw_str, StatValue
 from time import perf_counter, sleep
@@ -36,10 +28,10 @@ from collections import deque
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 import os, sys, subprocess
-from PIL import Image
 import face_recognition as fr
 import datetime
 import copy
+# from PIL import Image
 
 __author__ = "Alex Ismodes"
 __credits__ = ["Richard Alan Peters"]
@@ -61,18 +53,15 @@ class DummyTask:
 
 
 # initialize global variables
-
 frame_counter = 0
 show_frames = True
 vid_frames = False
 rollcall = False
 finish_rollcall = False
-load_images = True
-# import pathlib
-# pathlib.Path().absolute()
-PATH = str(Path().absolute())
-IMAGE_TYPES = ('PNG', 'JPG', 'JPEG')
-second = 1
+# load_images = True
+# PATH = str(Path().absolute())
+# IMAGE_TYPES = ('PNG', 'JPG', 'JPEG')
+# second = 1
 
 
 # this routine is run each time a new video frame is captured
@@ -131,43 +120,41 @@ def create_capture(source=0):
     return _cap
 
 
-# additional functions go here
-def get_concat_h_multi_resize(im_list, resample=Image.BICUBIC):
-    min_height = min(im.height for im in im_list)
-    im_list_resize = [im.resize((int(im.width * min_height / im.height), min_height),resample=resample)
-                      for im in im_list]
-    total_width = sum(im.width for im in im_list_resize)
-    dst = Image.new('RGB', (total_width, min_height))
-    pos_x = 0
-    for im in im_list_resize:
-        dst.paste(im, (pos_x, 0))
-        pos_x += im.width
-    return dst
+# def get_concat_h_multi_resize(im_list, resample=Image.BICUBIC):
+#     min_height = min(im.height for im in im_list)
+#     im_list_resize = [im.resize((int(im.width * min_height / im.height), min_height),resample=resample)
+#                       for im in im_list]
+#     total_width = sum(im.width for im in im_list_resize)
+#     dst = Image.new('RGB', (total_width, min_height))
+#     pos_x = 0
+#     for im in im_list_resize:
+#         dst.paste(im, (pos_x, 0))
+#         pos_x += im.width
+#     return dst
+#
+#
+# def get_concat_v_multi_resize(im_list, resample=Image.BICUBIC):
+#     min_width = min(im.width for im in im_list)
+#     im_list_resize = [im.resize((min_width, int(im.height * min_width / im.width)),resample=resample)
+#                       for im in im_list]
+#     total_height = sum(im.height for im in im_list_resize)
+#     dst = Image.new('RGB', (min_width, total_height))
+#     pos_y = 0
+#     for im in im_list_resize:
+#         dst.paste(im, (0, pos_y))
+#         pos_y += im.height
+#     return dst
+#
+#
+# def get_concat_tile_resize(im_list_2d, resample=Image.BICUBIC):
+#     im_list_v = [get_concat_h_multi_resize(im_list_h, resample=resample) for im_list_h in im_list_2d]
+#     return get_concat_v_multi_resize(im_list_v, resample=resample)
 
 
-def get_concat_v_multi_resize(im_list, resample=Image.BICUBIC):
-    min_width = min(im.width for im in im_list)
-    im_list_resize = [im.resize((min_width, int(im.height * min_width / im.width)),resample=resample)
-                      for im in im_list]
-    total_height = sum(im.height for im in im_list_resize)
-    dst = Image.new('RGB', (min_width, total_height))
-    pos_y = 0
-    for im in im_list_resize:
-        dst.paste(im, (0, pos_y))
-        pos_y += im.height
-    return dst
-
-
-def get_concat_tile_resize(im_list_2d, resample=Image.BICUBIC):
-    im_list_v = [get_concat_h_multi_resize(im_list_h, resample=resample) for im_list_h in im_list_2d]
-    return get_concat_v_multi_resize(im_list_v, resample=resample)
-
-# get_concat_tile_resize([[im1], [im1, im2], [im1, im2, im1]]).save('data/dst/pillow_concat_tile_resize.jpg')
-
-
-def encode(images):
+def encode(imgs):
     encodings = []
-    for i in images:
+
+    for i in imgs:
         # convert to RGB
         i = cv.cvtColor(i, cv.COLOR_BGR2RGB)
 
@@ -179,10 +166,11 @@ def encode(images):
 
 def mark(name, date):
     now = datetime.datetime.now()
-    # open the file
+
+    # open the csv file
     with open(date + ".csv", "a") as file:
-        #log name with
         hms = str(now.hour) +':'+ str(now.minute) +':'+ str(now.second)
+        # log status, name, and time
         log = 'P,'+ name.lower() + ',' + hms
         file.writelines(log+'\n')
 
@@ -190,16 +178,19 @@ def mark(name, date):
 def final_rollcall(absent, date):
     now = datetime.datetime.now()
 
-    #open csv file
+    # open the csv file
     with open(date + ".csv", "a") as file:
         for name in absent:
             log = 'A,' + name.lower() + ',' + 'NA'
             file.writelines(log + '\n')
 
 
-# main program
-if __name__ == '__main__':
-    import sys
+def main():
+    global frame_counter
+    global show_frames
+    global vid_frames
+    global rollcall
+    global finish_rollcall
 
     # print in the program shell window the text at the beginning of the file
     print(__doc__)
@@ -208,10 +199,9 @@ if __name__ == '__main__':
     now = datetime.datetime.now()
     date = str(now.year) + "-" + str(now.month) + "-" + str(now.day)
     # create empty CSV file
-    with open(date+".csv", "w") as file:
+    with open(date + ".csv", "w") as file:
         # write column headers
         file.writelines('status,name,time\n')
-        # CLOSE THE FILE
 
     names = []
     images = []
@@ -251,7 +241,8 @@ if __name__ == '__main__':
     prev_frame = frame.copy()
     cv.namedWindow("video")
 
-    # create video of Frame sequence -- define the codec and create VideoWriter object
+    # create video of Frame sequence
+    # define the codec and create VideoWriter object
     fourcc = cv.VideoWriter_fourcc(*'XVID')
     cols = np.int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     rows = np.int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
@@ -272,14 +263,13 @@ if __name__ == '__main__':
 
     # main program loop
     while True:
-        while len(pending) > 0 and pending[0].ready():  # there are frames in the queue
+        while len(pending) > 0 and pending[
+            0].ready():  # there are frames in the queue
             res, prev_frame, t0 = pending.popleft().get()
             latency.update(perf_counter() - t0)
 
             if finish_rollcall:
                 rollcall = not rollcall
-                # complete the CSV with the late ppl if any
-                #close csv
                 final_rollcall(absent, date)
 
                 # open the completed CSV file
@@ -292,7 +282,7 @@ if __name__ == '__main__':
             # additional functions go here
             if rollcall:
 
-                #resize current frame
+                # resize current frame
                 small = cv.resize(res, (0, 0), None, 0.25, 0.25)
 
                 # convert to RGB
@@ -319,17 +309,20 @@ if __name__ == '__main__':
                         y1, x2, y2, x1 = face_loc
 
                         # rescale it back to normal
-                        y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
+                        y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
 
                         # draw a rectangle
-                        cv.rectangle(res, (x1,y1),(x2,y2), (0,0,255), 2)
-                        cv.rectangle(res, (x1, y2-35), (x2, y2), (0, 0, 255), cv.FILLED)
+                        cv.rectangle(res, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                        cv.rectangle(res, (x1, y2 - 35), (x2, y2), (0, 0, 255),
+                                     cv.FILLED)
 
                         # adjust font size scale
                         scale = 1
-                        fontScale = min(x2-x1, y2-y1) / (400 / scale)
+                        fontScale = min(x2 - x1, y2 - y1) / (400 / scale)
 
-                        cv.putText(res, name.upper().replace('-', ' '), (x1+6,y2-6), cv.FONT_HERSHEY_SIMPLEX, fontScale, (255,255,255), 1)
+                        cv.putText(res, name.upper().replace('-', ' '),
+                                   (x1 + 6, y2 - 6), cv.FONT_HERSHEY_SIMPLEX,
+                                   fontScale, (255, 255, 255), 1)
                         if name not in marked:
                             mark(name, date)
                             marked.append(name)
@@ -337,22 +330,25 @@ if __name__ == '__main__':
 
             # plot info on threading and timing on the current image
             # comment out the next 3 lines to skip the plotting
-            draw_str(res, (20, 20), "status             :  " + str(len(names)-len(absent)) + "/" + str(len(names)) +" present")
+            draw_str(res, (20, 20), "status             :  " + str(
+                len(names) - len(absent)) + "/" + str(len(names)) + " present")
             now = datetime.datetime.now()
             hms = str(now.hour) + ':' + str(now.minute) + ':' + str(now.second)
             draw_str(res, (20, 40), "time             :  " + hms)
-            draw_str(res, (20, 60), "threaded          :  " + str(threaded_mode))
-            draw_str(res, (20, 80), "latency            :  %.1f ms" % (latency.value * 1000))
-            draw_str(res, (20, 100), "frame interval     :  %.1f ms" % (frame_interval.value * 1000))
-
-            # draw_str(res,(20, 80), "min threshold     :  " + str(thresh_low))
+            draw_str(res, (20, 60),
+                     "threaded          :  " + str(threaded_mode))
+            draw_str(res, (20, 80),
+                     "latency            :  %.1f ms" % (latency.value * 1000))
+            draw_str(res, (20, 100), "frame interval     :  %.1f ms" % (
+                        frame_interval.value * 1000))
 
             if vid_frames:
                 vid_out.write(res)
             # show the current image
             cv.imshow('video', res)
 
-        if len(pending) < threadn:  # fewer frames than threads -> get another frame
+        if len(
+                pending) < threadn:  # fewer frames than threads -> get another frame
             # get frame
             ret, frame = cap.read()
             frame_counter += 1
@@ -360,7 +356,8 @@ if __name__ == '__main__':
             frame_interval.update(t - last_frame_time)
             last_frame_time = t
             if threaded_mode:
-                task = pool.apply_async(process_frame, (frame.copy(), prev_frame.copy(), t))
+                task = pool.apply_async(process_frame,
+                                        (frame.copy(), prev_frame.copy(), t))
             else:
                 task = DummyTask(process_frame(frame, prev_frame, t))
             pending.append(task)
@@ -371,10 +368,6 @@ if __name__ == '__main__':
         # threaded or non threaded mode
         if key == ord(' '):
             threaded_mode = not threaded_mode
-
-        # # additional functions go here
-        # if key == ord('i'):
-        #     load_images = not load_images
 
         # additional functions go here
         if key == ord('r'):
@@ -399,3 +392,8 @@ if __name__ == '__main__':
             vid_out.release()
             cv.destroyAllWindows()
             break
+
+
+if __name__ == '__main__':
+    main()
+
