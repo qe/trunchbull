@@ -35,9 +35,11 @@ from time import perf_counter, sleep
 from collections import deque
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-import os, sys
+import os, sys, subprocess
 from PIL import Image
-# import Image
+import face_recognition as fr
+import datetime
+import copy
 
 __author__ = "Alex Ismodes"
 __credits__ = ["Richard Alan Peters"]
@@ -64,11 +66,13 @@ frame_counter = 0
 show_frames = True
 vid_frames = False
 rollcall = False
+finish_rollcall = False
 load_images = True
 # import pathlib
 # pathlib.Path().absolute()
 PATH = str(Path().absolute())
 IMAGE_TYPES = ('PNG', 'JPG', 'JPEG')
+second = 1
 
 
 # this routine is run each time a new video frame is captured
@@ -161,6 +165,38 @@ def get_concat_tile_resize(im_list_2d, resample=Image.BICUBIC):
 # get_concat_tile_resize([[im1], [im1, im2], [im1, im2, im1]]).save('data/dst/pillow_concat_tile_resize.jpg')
 
 
+def encode(images):
+    encodings = []
+    for i in images:
+        # convert to RGB
+        i = cv.cvtColor(i, cv.COLOR_BGR2RGB)
+
+        # find the encodings
+        encoded = fr.face_encodings(i)[0]
+        encodings.append(encoded)
+    return encodings
+
+
+def mark(name, date):
+    now = datetime.datetime.now()
+    # open the file
+    with open(date + ".csv", "a") as file:
+        #log name with
+        hms = str(now.hour) +':'+ str(now.minute) +':'+ str(now.second)
+        log = 'P,'+ name.lower() + ',' + hms
+        file.writelines(log+'\n')
+
+
+def final_rollcall(absent, date):
+    now = datetime.datetime.now()
+
+    #open csv file
+    with open(date + ".csv", "a") as file:
+        for name in absent:
+            log = 'A,' + name.lower() + ',' + 'NA'
+            file.writelines(log + '\n')
+
+
 # main program
 if __name__ == '__main__':
     import sys
@@ -168,55 +204,32 @@ if __name__ == '__main__':
     # print in the program shell window the text at the beginning of the file
     print(__doc__)
 
-    # ------------------------------------------------------------------------
-    blank = Image.new('RGB', (420, 420))
+    # get the current date
+    now = datetime.datetime.now()
+    date = str(now.year) + "-" + str(now.month) + "-" + str(now.day)
+    # create empty CSV file
+    with open(date+".csv", "w") as file:
+        # write column headers
+        file.writelines('status,name,time\n')
+        # CLOSE THE FILE
 
-    path_images = PATH + '/images'
-    count_images = 0
-    images_names = []
-    images_filenames = []
+    names = []
     images = []
+    path_images = 'images'
+    list_images = os.listdir(path_images)
 
-    for path in Path(path_images).iterdir():
-        if path.is_file() and str(path).split('.')[1].upper() in IMAGE_TYPES:
-            count_images += 1
-            # Path(str(path)).name
+    for filename in list_images:
+        if filename != ".DS_Store":
+            cur_img = cv.imread(f'{path_images}/{filename}')
+            images.append(cur_img)
+            names.append(os.path.splitext(filename)[0])
 
-            raw_filename = Path(str(path)).name
-            images_filenames.append(raw_filename)
+    # create a copy of the list of names to later determine who is still absent
+    absent = copy.deepcopy(names)
+    marked = []
 
-            filename = raw_filename.rsplit(".", 1)[0]
-            full_name = ' '.join(filename.split('-')).title()
-            images_names.append(full_name)
-
-            full_path = str('Path(str(path))')
-            exec('img' + str(count_images) + ' = ' + 'Image.open(' + full_path + ')')
-            exec('images.append(' + str('img') + str(count_images) + ')')
-
-    print("images_filenames:", images_filenames)
-    print()
-    print("images_names:", images_names)
-    print()
-    print("count_images:", count_images)
-    print()
-    print("images", images)
-    print()
-
-    # determine how to nest the images depending on the size of `images`
-
-
-
-    # composite = get_concat_tile_resize([[img1, img2, img3, img4, img5]])
-    composite = get_concat_tile_resize([
-                                        [img1],
-                                        [img2, img3],
-                                        [blank, img5]
-                                        ])
-    composite = np.array(composite.convert('RGB'))[:, :, ::-1].copy()
-
-    # get_concat_tile_resize([[img1, img2], [img3]]).save('DELETEME.jpg')
-
-    # ------------------------------------------------------------------------
+    # gets the encodings of all the headshots
+    rc_encoded = encode(images)
 
     # if there is no argument in the program invocation default to camera 0
     # noinspection PyBroadException
@@ -257,101 +270,81 @@ if __name__ == '__main__':
     frame_interval = StatValue()
     last_frame_time = perf_counter()
 
-    absent = []
     # main program loop
     while True:
         while len(pending) > 0 and pending[0].ready():  # there are frames in the queue
             res, prev_frame, t0 = pending.popleft().get()
             latency.update(perf_counter() - t0)
 
+            if finish_rollcall:
+                rollcall = not rollcall
+                # complete the CSV with the late ppl if any
+                #close csv
+                final_rollcall(absent, date)
+
+                # open the completed CSV file
+                date = str(now.year) + "-" + str(now.month) + "-" + str(
+                    now.day)
+                opener = "open" if sys.platform == "darwin" else "xdg-open"
+                subprocess.call([opener, date + ".csv"])
+                finish_rollcall = not finish_rollcall
 
             # additional functions go here
             if rollcall:
-                if load_images:
-                    # display current students
 
+                #resize current frame
+                small = cv.resize(res, (0, 0), None, 0.25, 0.25)
 
-                    # #
-                    #
-                    # if here =
+                # convert to RGB
+                cur_small = cv.cvtColor(small, cv.COLOR_BGR2RGB)
 
-                    # get the dimensions of the compisite image
-                    h, w, _ = composite.shape
-                    print("height: ", h)
-                    print("height: ", w)
+                # get the face locations of all the ppl in the webcame frame
+                cur_faces = fr.face_locations(cur_small)
 
-                    # status
-                    cv.namedWindow('absent', cv.WINDOW_NORMAL)
-                    cv.resizeWindow('absent', w, h)
-                    # may need to resize it before displaying
-                    cv.imshow('absent', composite)
-                    # gather the number if images in folder
-                    # path_images = PATH + '/images'
-                    # dirs = os.listdir(path_images)
-                    load_images = False
+                # get encoding of the webcam
+                cur_encoded = fr.face_encodings(cur_small, cur_faces)
 
+                # now, find the matches
+                for face_loc, encode_face in zip(cur_faces, cur_encoded):
+                    matches = fr.compare_faces(rc_encoded, encode_face)
+                    # calculate the distance
+                    distance = fr.face_distance(rc_encoded, encode_face)
+                    # print(distance)
+                    match_idx = np.argmin(distance)
 
+                    if matches[match_idx]:
+                        name = names[match_idx]
 
-                # if here:
-                    # removes images if student is found
+                        # unpack face coordinates
+                        y1, x2, y2, x1 = face_loc
 
-                # rollcall = False
+                        # rescale it back to normal
+                        y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
 
+                        # draw a rectangle
+                        cv.rectangle(res, (x1,y1),(x2,y2), (0,0,255), 2)
+                        cv.rectangle(res, (x1, y2-35), (x2, y2), (0, 0, 255), cv.FILLED)
 
+                        # adjust font size scale
+                        scale = 1
+                        fontScale = min(x2-x1, y2-y1) / (400 / scale)
 
-
-
-
-
-
-            # # set image composite to specific size and set to specific x-y location
-            # # window compsiite size
-            #
-            # # take the total number of images
-            #
-            # if do_image:
-            #     # if no window yet..
-            #     if not count_window:
-            #         # adds the image to the new window
-            #         cv.namedWindow("captures")
-            #         # moves the window to the side
-            #         cv.moveWindow("captures", 100, 100)
-            #         # resizes window to match with next second capture
-            #         resized = cv.resize(res, (712, 400))
-            #         cv.imshow("captures", resized)
-            #         count_window += 1
-            #     # if there is already an existing window..
-            #     else:
-            #         prev_image = cv.imread(
-            #             "captured" + str(count_image) + ".png")
-            #         vertical_window = np.concatenate((res, prev_image),
-            #                                          axis=0)
-            #         cv.imshow("captures", vertical_window)
-            #
-            #     # saves the image to the working directory
-            #     count_image += 1
-            #     cv.imwrite("captured" + str(count_image) + ".png", res)
-            #
-            #     do_image = False
-
-
-
-
-
-
-
-
-
-
-
-
-
+                        cv.putText(res, name.upper().replace('-', ' '), (x1+6,y2-6), cv.FONT_HERSHEY_SIMPLEX, fontScale, (255,255,255), 1)
+                        if name not in marked:
+                            mark(name, date)
+                            marked.append(name)
+                            absent.remove(name)
 
             # plot info on threading and timing on the current image
             # comment out the next 3 lines to skip the plotting
-            draw_str(res, (20, 20), "threaded          :  " + str(threaded_mode))
-            draw_str(res, (20, 40), "latency            :  %.1f ms" % (latency.value * 1000))
-            draw_str(res, (20, 60), "frame interval     :  %.1f ms" % (frame_interval.value * 1000))
+            draw_str(res, (20, 20), "status             :  " + str(len(names)-len(absent)) + "/" + str(len(names)) +" present")
+            now = datetime.datetime.now()
+            hms = str(now.hour) + ':' + str(now.minute) + ':' + str(now.second)
+            draw_str(res, (20, 40), "time             :  " + hms)
+            draw_str(res, (20, 60), "threaded          :  " + str(threaded_mode))
+            draw_str(res, (20, 80), "latency            :  %.1f ms" % (latency.value * 1000))
+            draw_str(res, (20, 100), "frame interval     :  %.1f ms" % (frame_interval.value * 1000))
+
             # draw_str(res,(20, 80), "min threshold     :  " + str(thresh_low))
 
             if vid_frames:
@@ -387,8 +380,8 @@ if __name__ == '__main__':
         if key == ord('r'):
             rollcall = not rollcall
 
-
-
+        if key == ord('f'):
+            finish_rollcall = not finish_rollcall
 
         # ESC terminates the program
         if key == ord('v'):
