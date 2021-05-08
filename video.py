@@ -98,6 +98,7 @@ class Book(VideoSynthBase):
 
         return True, cv.add(self.render.getNextFrame(), noise, dtype=cv.CV_8UC3)
 
+
 class Cube(VideoSynthBase):
     def __init__(self, **kw):
         super(Cube, self).__init__(**kw)
@@ -108,6 +109,7 @@ class Cube(VideoSynthBase):
         cv.randn(noise, np.zeros(3), np.ones(3)*255*self.noise)
 
         return True, cv.add(self.render.getNextFrame(), noise, dtype=cv.CV_8UC3)
+
 
 class Chess(VideoSynthBase):
     def __init__(self, **kw):
@@ -199,6 +201,7 @@ def create_capture(source = 0, fallback = presets['chess']):
         if fallback is not None:
             return create_capture(fallback, None)
     return cap
+
 
 if __name__ == '__main__':
     import sys

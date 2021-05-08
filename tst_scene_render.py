@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 # Python 2/3 compatibility
 from __future__ import print_function
 
@@ -100,7 +99,6 @@ class TestSceneRender():
 
 
 if __name__ == '__main__':
-
     backGr = cv.imread('../data/graf1.png')
     fgr = cv.imread('../data/box.png')
 

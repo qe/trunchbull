@@ -34,7 +34,7 @@ import copy
 # from PIL import Image
 
 __author__ = "Alex Ismodes"
-__credits__ = ["Richard Alan Peters"]
+__credits__ = ["Richard Alan Peters", "Adam Geitgey", "Murtaza Hassan"]
 __license__ = "MIT"
 __email__ = "alex.ismodes@vanderbilt.edu"
 

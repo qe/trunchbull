@@ -22,21 +22,27 @@ from contextlib import contextmanager
 
 image_extensions = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
 
+
 class Bunch(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)
     def __str__(self):
         return str(self.__dict__)
 
+
 def splitfn(fn):
     path, fn = os.path.split(fn)
     name, ext = os.path.splitext(fn)
     return path, name, ext
 
+
 def anorm2(a):
     return (a*a).sum(-1)
+
+
 def anorm(a):
     return np.sqrt( anorm2(a) )
+
 
 def homotrans(H, x, y):
     xs = H[0, 0]*x + H[0, 1]*y + H[0, 2]
@@ -44,19 +50,19 @@ def homotrans(H, x, y):
     s  = H[2, 0]*x + H[2, 1]*y + H[2, 2]
     return xs/s, ys/s
 
+
 def to_rect(a):
     a = np.ravel(a)
     if len(a) == 2:
         a = (0, 0, a[0], a[1])
     return np.array(a, np.float64).reshape(2, 2)
 
+
 def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
     cx, cy = (dst[1] - dst[0]) / (src[1] - src[0])
     tx, ty = dst[0] - src[0] * (cx, cy)
-    M = np.float64([[ cx,  0, tx],
-                    [  0, cy, ty],
-                    [  0,  0,  1]])
+    M = np.float64([[ cx,  0, tx], [  0, cy, ty], [  0,  0,  1]])
     return M
 
 
@@ -70,6 +76,7 @@ def lookat(eye, target, up = (0, 0, 1)):
     tvec = -np.dot(R, eye)
     return R, tvec
 
+
 def mtx2rvec(R):
     w, u, vt = cv.SVDecomp(R - np.eye(3))
     p = vt[0] + u[:,0]*w[0]    # same as np.dot(R, vt[0])
@@ -78,10 +85,12 @@ def mtx2rvec(R):
     axis = np.cross(vt[0], vt[1])
     return axis * np.arctan2(s, c)
 
+
 def draw_str(dst, target, s):
     x, y = target
     cv.putText(dst, s, (x+1, y+1), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv.LINE_AA)
     cv.putText(dst, s, (x, y), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv.LINE_AA)
+
 
 class Sketcher:
     def __init__(self, windowname, dests, colors_func):
@@ -121,6 +130,7 @@ _jet_data =   {'red':   ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89,1, 1),
 
 cmap_data = { 'jet' : _jet_data }
 
+
 def make_cmap(name, n=256):
     data = cmap_data[name]
     xs = np.linspace(0.0, 1.0, n)
@@ -136,11 +146,14 @@ def make_cmap(name, n=256):
         channels.append(ch)
     return np.uint8(np.array(channels).T*255)
 
+
 def nothing(*arg, **kw):
     pass
 
+
 def clock():
     return cv.getTickCount() / cv.getTickFrequency()
+
 
 @contextmanager
 def Timer(msg):
@@ -151,16 +164,19 @@ def Timer(msg):
     finally:
         print("%.2f ms" % ((clock()-start)*1000))
 
+
 class StatValue:
     def __init__(self, smooth_coef = 0.5):
         self.value = None
         self.smooth_coef = smooth_coef
+
     def update(self, v):
         if self.value is None:
             self.value = v
         else:
             c = self.smooth_coef
             self.value = c * self.value + (1.0-c) * v
+
 
 class RectSelector:
     def __init__(self, win, callback):
@@ -169,6 +185,7 @@ class RectSelector:
         cv.setMouseCallback(win, self.onmouse)
         self.drag_start = None
         self.drag_rect = None
+
     def onmouse(self, event, x, y, flags, param):
         x, y = np.int16([x, y]) # BUG
         if event == cv.EVENT_LBUTTONDOWN:
@@ -188,12 +205,14 @@ class RectSelector:
                 self.drag_rect = None
                 if rect:
                     self.callback(rect)
+
     def draw(self, vis):
         if not self.drag_rect:
             return False
         x0, y0, x1, y1 = self.drag_rect
         cv.rectangle(vis, (x0, y0), (x1, y1), (0, 255, 0), 2)
         return True
+
     @property
     def dragging(self):
         return self.drag_rect is not None
@@ -207,6 +226,7 @@ def grouper(n, iterable, fillvalue=None):
     else:
         output = it.izip_longest(fillvalue=fillvalue, *args)
     return output
+
 
 def mosaic(w, imgs):
     '''Make a grid from images.
@@ -224,12 +244,15 @@ def mosaic(w, imgs):
     rows = grouper(w, imgs, pad)
     return np.vstack(map(np.hstack, rows))
 
+
 def getsize(img):
     h, w = img.shape[:2]
     return w, h
 
+
 def mdot(*args):
     return reduce(np.dot, args)
+
 
 def draw_keypoints(vis, keypoints, color = (0, 255, 255)):
     for kp in keypoints:
