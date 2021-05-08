@@ -3,30 +3,34 @@
 
 ## Run
 1. [Download the repository](https://github.com/qe/trunchbull/archive/refs/heads/master.zip)
-2. Open **Terminal**
-3. ```cd``` into the directory of the downloaded repository
-4. ```source agatha/bin/activate``` activates the virtual environment (called *agatha*)
-5. ```python3 trunchbull.py``` to run
-6. ```click on the video output```
-7. press ```r``` to begin the roll call
-8. press ```f``` to finish the roll call (CSV file should automatically open)
-9. press ```ESC``` to close the application
+2. In the folder called ***images*** within the downloaded folder, replace the images in the with the ones you want
+3. Format the file names with a hyphen separating first and last name (e.g. ***john-doe.png*** or ***jane-doe.jpg***) 
+4. Open **Terminal**
+5. ```cd``` into the directory of the downloaded repository
+6. ```source agatha/bin/activate``` activates the virtual environment (called *agatha*)
+7. ```python3 trunchbull.py``` to run
+8. Click on the video output
+9. Press ```r``` to begin the roll call
+10. Press ```f``` to finish the roll call (CSV file should automatically open)
+11. Press ```ESC``` to close the application
 
 <br>
 
-the CSV file should look like this 👇
+![](example.gif)
+
+<br>
 
 status | name | time
 ------------ | ------------- | -------------
-P | alex-ismodes | 12:48:42
-P | agatha-trunchbull | 12:49:3
-A | agent-bob | NA
-A | agent-bill | NA
+P | agent-bill | 12:48:42
+P | alex-ismodes | 17:18:38
+P | agatha-trunchbull | 17:18:41
+P | agent-bob | 17:18:45
 A | jennifer-honey | NA
 
 <br>
 
-## To-Do List
+## To-Do 
 - [ ] give the option of setting a timer to gather who is late 
 - [ ] add docstrings to functions and methods
 - [ ] add requirements.txt file
