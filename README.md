@@ -20,6 +20,8 @@
 
 <br>
 
+The CSV file from the example above looks like this 👇
+
 status | name | time
 ------------ | ------------- | -------------
 P | agent-bill | 12:48:42
@@ -31,9 +33,9 @@ A | jennifer-honey | NA
 <br>
 
 ## To-Do 
-- [ ] give the option of setting a timer to gather who is late 
-- [ ] add docstrings to functions and methods
-- [ ] add requirements.txt file
-    - automatically do this using ```pip install pipreqs```
+- [ ] Give the option of setting a timer to gather who is late 
+- [ ] Add docstrings to functions and methods
+- [ ] Add requirements.txt file
+    - Automatically do this using ```pip install pipreqs```
 
 <br>

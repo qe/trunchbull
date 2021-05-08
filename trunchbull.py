@@ -4,7 +4,7 @@ Trunchbull: a facial-recognition attendance tracker
 
 "Miss Trunchbull, the Headmistress, was something else altogether. She was a
 gigantic holy terror, a fierce tyrannical monster who frightened the life out
-of the pupils and teachers alike" - Roald Dahl
+of the pupils and teachers alike." - Roald Dahl
 
 Keyboard shortcuts: (video display window must be selected)
 
