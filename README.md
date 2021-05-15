@@ -1,7 +1,19 @@
-# Trunchbull: a facial-recognition attendance tracker
-![alt text](https://i.pinimg.com/originals/3d/1f/b7/3d1fb76d7af237e7773fa8a789fceb71.gif)
+<p align="center">
+  <img src="trunchbull.png" alt="Agatha Trunchbull" width="50%" height="50%">
+</p>
 
-## Run
+<h3 align="center">Trunchbull</h3>
+<p align="center">
+  The facial-recognition attendance tracker.
+  <br>
+  <br>
+  <a href="https://github.com/qe/trunchbull/archive/refs/heads/master.zip">Download</a>
+  ·
+  <a href="https://github.com/qe/trunchbull/issues/new?template=bug_report.md">Report bug</a>
+</p>
+
+
+### Run
 1. [Download the repository](https://github.com/qe/trunchbull/archive/refs/heads/master.zip)
 2. In the folder called ***images*** within the downloaded folder, replace the images in the with the ones you want
 3. Format the file names with a hyphen separating first and last name (e.g. ***john-doe.png*** or ***jane-doe.jpg***) 
@@ -32,10 +44,13 @@ A | jennifer-honey | NA
 
 <br>
 
-## To-Do 
+### To-Do 
 - [ ] Give the option of setting a timer to gather who is late 
 - [ ] Add docstrings to functions and methods
 - [ ] Add requirements.txt file
     - Automatically do this using ```pip install pipreqs```
 
 <br>
+
+
+
