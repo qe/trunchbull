@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="trunchbull.png" alt="Agatha Trunchbull" width="50%" height="50%">
+  <img src="trunchbull.png" alt="Agatha Trunchbull" width="42%" height="42%">
 </p>
 
 <h3 align="center">Trunchbull</h3>
@@ -13,7 +13,7 @@
 </p>
 
 
-### Run
+## Run
 1. [Download the repository](https://github.com/qe/trunchbull/archive/refs/heads/master.zip)
 2. In the folder called ***images*** within the downloaded folder, replace the images in the with the ones you want
 3. Format the file names with a hyphen separating first and last name (e.g. ***john-doe.png*** or ***jane-doe.jpg***) 
@@ -28,7 +28,11 @@
 
 <br>
 
-![](example.gif)
+
+<p align="center">
+  <img src="example.gif" alt="Example of Trunchbull" width="88%" height="88%">
+</p>
+
 
 <br>
 
@@ -44,7 +48,7 @@ A | jennifer-honey | NA
 
 <br>
 
-### To-Do 
+## To-Do 
 - [ ] Give the option of setting a timer to gather who is late 
 - [ ] Add docstrings to functions and methods
 - [ ] Add requirements.txt file
