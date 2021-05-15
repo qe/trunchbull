@@ -10,11 +10,18 @@
   <a href="https://github.com/qe/trunchbull/archive/refs/heads/master.zip">Download</a>
   ·
   <a href="https://github.com/qe/trunchbull/issues/new?template=bug_report.md">Report bug</a>
+  <br>
+  <br>
+  Trunchbull is a facial-recognition program that tracks attendance using<br>
+  computer vision by noting, in a CSV file, the time when the student<br>
+  appeared in the camera. Named after Miss Trunchbull, the main<br>
+  antagonist in Roald Dahl's <a href="https://en.wikipedia.org/wiki/Matilda_(novel)"><i>Matilda</i></a>, I believe this program captures<br>
+  some of her uncompromising persona.
 </p>
 
 
 ## Run
-1. [Download the repository](https://github.com/qe/trunchbull/archive/refs/heads/master.zip)
+1. Download the repository
 2. In the folder called ***images*** within the downloaded folder, replace the images in the with the ones you want
 3. Format the file names with a hyphen separating first and last name (e.g. ***john-doe.png*** or ***jane-doe.jpg***) 
 4. Open **Terminal**
